@@ -1,0 +1,10 @@
+# Intentionally empty for the demo.
+#
+# In the live workshop, this is the moment to show a real dependency
+# resolving through Artifactory's pypi-remote repo instead of the public
+# PyPI directly — e.g.:
+#
+#   requests==2.32.3
+#
+# Once `jf pip-config` runs in the pipeline, `pip install -r requirements.txt`
+# pulls through Artifactory automatically. No code change needed.
