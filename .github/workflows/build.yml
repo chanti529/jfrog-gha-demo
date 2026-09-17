@@ -12,6 +12,13 @@ env:
   JF_URL: ${{ vars.JF_URL }}
   JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
 
+  # Pinned once, used everywhere below. Every jf command in this job reads
+  # these automatically — no need to repeat --build-name / --build-number
+  # on each one, and no risk of two steps disagreeing on which build they're
+  # writing to.
+  JFROG_CLI_BUILD_NAME: payments-utils-demo
+  JFROG_CLI_BUILD_NUMBER: ${{ github.run_number }}
+
 jobs:
   build-and-publish:
     # Hosted runner for the live demo. Visa's actual pipelines run:
@@ -63,6 +70,13 @@ jobs:
       - name: Publish package to Artifactory
         run: jf rt upload "dist/*.whl" "dev-pypi-local/payments-utils-demo/"
 
+      # ---- This is the step that was missing ----
+      # build-collect-env only grabs OS-level env vars — it never touches
+      # git. Commit SHA, branch, and commit message only show up in
+      # Artifactory's build view if this command runs explicitly.
+      - name: Add git commit info to the build
+        run: jf rt build-add-git
+
       - name: Collect environment info
         run: jf rt build-collect-env
 
@@ -74,7 +88,8 @@ jobs:
         run: |
           echo "### JFrog Build Info" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Build published: **payments-utils-demo / ${{ github.run_number }}**" >> "$GITHUB_STEP_SUMMARY"
+          echo "Build name: **$JFROG_CLI_BUILD_NAME**" >> "$GITHUB_STEP_SUMMARY"
+          echo "Build number: **$JFROG_CLI_BUILD_NUMBER**" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "View in Artifactory: \`$JF_URL/ui/builds\`" >> "$GITHUB_STEP_SUMMARY"
-
+          echo "View in Artifactory: \`$JF_URL/ui/builds/$JFROG_CLI_BUILD_NAME/$JFROG_CLI_BUILD_NUMBER\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "(or browse from \`$JF_URL/ui/builds\` if the direct link doesn't resolve on your version)" >> "$GITHUB_STEP_SUMMARY"
