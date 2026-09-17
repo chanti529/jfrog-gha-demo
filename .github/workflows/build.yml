@@ -35,11 +35,13 @@ jobs:
         uses: jfrog/setup-jfrog-cli@v4
 
       # ---- TAKE: resolve dependencies through Artifactory ----
-      # This is the "take" half of last section's give/take pattern —
-      # pip now resolves through your pypi-remote repo instead of
-      # going straight to the public PyPI.
+      # This is the "take" half of last section's give/take pattern.
+      # dev-pypi is the virtual repo — it quietly aggregates dev-pypi-local
+      # (your own team's published packages) and dev-pypi-remote (proxied
+      # public PyPI). pip only ever talks to dev-pypi; it doesn't need to
+      # know which of the two actually served the package.
       - name: Configure pip to resolve through Artifactory
-        run: jf pip-config --repo-resolve=pypi-remote
+        run: jf pip-config --repo-resolve=dev-pypi --repo-deploy=dev-pypi-local
 
       - name: Install dependencies
         run: |
@@ -55,9 +57,11 @@ jobs:
 
       # ---- GIVE: publish the artifact, with build context attached ----
       # This is the "give" half — the artifact lands in Artifactory
-      # already linked to the build that produced it.
+      # already linked to the build that produced it. Publishing goes
+      # straight to the local repo, not the virtual — you always deploy
+      # to a specific local, and let the virtual handle resolution.
       - name: Publish package to Artifactory
-        run: jf rt upload "dist/*.whl" "pypi-local/payments-utils-demo/"
+        run: jf rt upload "dist/*.whl" "dev-pypi-local/payments-utils-demo/"
 
       - name: Collect environment info
         run: jf rt build-collect-env
@@ -73,3 +77,4 @@ jobs:
           echo "Build published: **payments-utils-demo / ${{ github.run_number }}**" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "View in Artifactory: \`$JF_URL/ui/builds\`" >> "$GITHUB_STEP_SUMMARY"
+
