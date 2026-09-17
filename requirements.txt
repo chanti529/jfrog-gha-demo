@@ -8,3 +8,7 @@
 #
 # Once `jf pip-config` runs in the pipeline, `pip install -r requirements.txt`
 # pulls through Artifactory automatically. No code change needed.
+# A real dependency, on purpose — this is what makes the "take" half of
+# the demo visible. Without something here, pip has nothing to resolve,
+# so dev-pypi-remote never gets exercised.
+requests==2.32.3
