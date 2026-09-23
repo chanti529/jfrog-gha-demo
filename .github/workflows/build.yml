@@ -82,7 +82,8 @@ jobs:
 
       - name: Publish build info
         run: jf rt build-publish
-
+      - name: Scan published build
+        run: jf build-scan
       # ---- The bidirectional link developers actually feel ----
       - name: Job summary
         run: |
